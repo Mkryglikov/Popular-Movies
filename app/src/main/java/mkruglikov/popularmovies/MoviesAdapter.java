@@ -1,6 +1,7 @@
 package mkruglikov.popularmovies;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,28 +11,30 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import mkruglikov.popularmovies.data.Movie;
 
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder> {
-    List<String> posters;
-    Context context;
+    public static final String INTENT_EXTRA_KEY = "intent_bundle_key";
+    private List<Movie> posters = new ArrayList<>();
+    private final Context context;
 
-    MoviesAdapter(Context context, List<String> posters) {
+    MoviesAdapter(Context context, List<Movie> posters) {
         this.posters = posters;
         this.context = context;
     }
 
-
     class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivPosterItem;
+        final ImageView ivPosterItem;
 
         ViewHolder(View itemView) {
             super(itemView);
             ivPosterItem = itemView.findViewById(R.id.ivPosterItem);
         }
     }
-
 
     @NonNull
     @Override
@@ -40,10 +43,18 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MoviesAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final MoviesAdapter.ViewHolder holder, int position) {
         Picasso picasso = Picasso.with(context);
         picasso.setLoggingEnabled(true);
-        picasso.load(posters.get(position)).into(holder.ivPosterItem);
+        picasso.load(posters.get(position).getPoster()).into(holder.ivPosterItem);
+        holder.ivPosterItem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context, DetailActivity.class);
+                intent.putExtra(INTENT_EXTRA_KEY, posters.get(holder.getAdapterPosition()));
+                context.startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -51,7 +62,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
         return posters.size();
     }
 
-    void setPosters(List<String> posters) {
+    void setPosters(List<Movie> posters) {
         this.posters = posters;
         notifyDataSetChanged();
     }

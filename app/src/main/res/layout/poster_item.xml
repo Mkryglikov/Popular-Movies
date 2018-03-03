@@ -2,10 +2,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="256dp"
-    android:padding="6dp">
+    android:padding="8dp">
 
     <ImageView
         android:id="@+id/ivPosterItem"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:background="?attr/selectableItemBackground"
+        android:layout_height="match_parent" />
 </LinearLayout>
