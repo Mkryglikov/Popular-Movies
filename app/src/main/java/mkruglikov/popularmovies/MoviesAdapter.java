@@ -1,7 +1,6 @@
 package mkruglikov.popularmovies;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -18,13 +17,15 @@ import mkruglikov.popularmovies.data.Movie;
 
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder> {
-    public static final String INTENT_EXTRA_KEY = "intent_bundle_key";
-    private List<Movie> posters = new ArrayList<>();
+    static final String INTENT_EXTRA_KEY = "intent_bundle_key";
+    private List<Movie> movies = new ArrayList<>();
+    private OnMovieClickListener listener;
     private final Context context;
 
-    MoviesAdapter(Context context, List<Movie> posters) {
-        this.posters = posters;
+    MoviesAdapter(Context context, List<Movie> movies, OnMovieClickListener listener) {
+        this.movies = movies;
         this.context = context;
+        this.listener = listener;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -46,24 +47,29 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
     public void onBindViewHolder(@NonNull final MoviesAdapter.ViewHolder holder, int position) {
         Picasso picasso = Picasso.with(context);
         picasso.setLoggingEnabled(true);
-        picasso.load(posters.get(position).getPoster()).into(holder.ivPosterItem);
+        picasso.load(movies.get(position).getPoster()).into(holder.ivPosterItem);
+
         holder.ivPosterItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(context, DetailActivity.class);
-                intent.putExtra(INTENT_EXTRA_KEY, posters.get(holder.getAdapterPosition()));
-                context.startActivity(intent);
+                listener.onMovieClick(movies.get(holder.getAdapterPosition()));
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return posters.size();
+        return movies.size();
     }
 
-    void setPosters(List<Movie> posters) {
-        this.posters = posters;
-        notifyDataSetChanged();
+    void setMovies(List<Movie> movies) {
+        if (!this.movies.equals(movies)) {
+            this.movies = movies;
+            notifyDataSetChanged();
+        }
+    }
+
+    public interface OnMovieClickListener {
+        void onMovieClick(Movie movie);
     }
 }

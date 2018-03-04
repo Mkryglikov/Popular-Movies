@@ -5,6 +5,6 @@
     <string name="release_date_label">Release Date:</string>
     <string name="vote_average_label">Vote average:</string>
     <string name="network_error_title">Connect to the Internet</string>
-    <string name="network_error_description">Check your internet connection   and swipe down to refresh</string>
+    <string name="network_error_description">Check your internet connection\nand swipe down to refresh</string>
     <string name="sort_action_label">Sort</string>
 </resources>
