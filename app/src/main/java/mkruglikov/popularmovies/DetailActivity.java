@@ -8,6 +8,8 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.parceler.Parcels;
+
 import mkruglikov.popularmovies.data.Movie;
 
 public class DetailActivity extends AppCompatActivity {
@@ -18,7 +20,7 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        Movie movie = (Movie) getIntent().getSerializableExtra(MoviesAdapter.INTENT_EXTRA_KEY);
+        Movie movie = Parcels.unwrap(getIntent().getParcelableExtra(MoviesAdapter.INTENT_EXTRA_KEY));
 
         setTitle(movie.getTitle());
         Toolbar toolbar = findViewById(R.id.toolbarDetail);

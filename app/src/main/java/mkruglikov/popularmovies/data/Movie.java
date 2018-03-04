@@ -1,13 +1,14 @@
 package mkruglikov.popularmovies.data;
 
-import java.io.Serializable;
+import org.parceler.Parcel;
 
-public class Movie implements Serializable{
-    private final String title;
-    private final String releaseDate;
-    private final String poster;
-    private final String overview;
-    private final float voteAverage;
+@Parcel
+public class Movie {
+    String title;
+    String releaseDate;
+    String poster;
+    String overview;
+    float voteAverage;
 
 
     public String getTitle() {
@@ -36,5 +37,9 @@ public class Movie implements Serializable{
         this.poster = poster;
         this.voteAverage = voteAverage;
         this.overview = overview;
+    }
+
+    // Empty constructor needed by the Parceler library
+    public Movie() {
     }
 }

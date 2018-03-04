@@ -1,6 +1,5 @@
 package mkruglikov.popularmovies.utilites;
 
-import android.annotation.SuppressLint;
 import android.net.Uri;
 import android.os.AsyncTask;
 
@@ -16,133 +15,150 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import mkruglikov.popularmovies.Keys;
+import mkruglikov.popularmovies.BuildConfig;
 import mkruglikov.popularmovies.data.Movie;
 
 public class MoviesUtils {
-    private static final List<Movie> posters = new ArrayList<>();
+    private static OnPopularMoviesDownloadedListener popularMoviesListener;
+    private static OnTopRatedMoviesDownloadedListener topRatedMoviesListener;
+    private static List<Movie> popularMovies = new ArrayList<>();
+    private static List<Movie> topRatedMovies = new ArrayList<>();
 
-    private static final String URL_POPULAR = "https://api.themoviedb.org/3/movie/popular";
-    private static final String URL_TOP_RATED = "https://api.themoviedb.org/3/movie/top_rated";
+    private static final String URL_POPULAR_BASE = "https://api.themoviedb.org/3/movie/popular";
+    private static final String URL_TOP_RATED_BASE = "https://api.themoviedb.org/3/movie/top_rated";
     private static final String URL_POSTERS_BASE = "https://image.tmdb.org/t/p/w342";
 
-    @SuppressLint("StaticFieldLeak")
-    public static List<Movie> getPopular() {
-        if (!posters.isEmpty()) posters.clear();
+    public static void getPopular(OnPopularMoviesDownloadedListener onPopularMoviesDownloadedListener) {
+        popularMoviesListener = onPopularMoviesDownloadedListener;
+        new getPopularAsyncTask().execute();
+    }
 
-        try {
-            return new AsyncTask<Void, Void, List<Movie>>() {
-                @Override
-                protected List<Movie> doInBackground(Void... params) {
+    public interface OnPopularMoviesDownloadedListener {
+        void onDownload(List<Movie> downloadedPopularMovies);
+    }
+
+    private static class getPopularAsyncTask extends AsyncTask<OnPopularMoviesDownloadedListener, Void, List<Movie>> {
+        @Override
+        protected List<Movie> doInBackground(OnPopularMoviesDownloadedListener... listeners) {
+            try {
+                URL popularMoviesUrl = new URL(Uri.parse(URL_POPULAR_BASE).buildUpon()
+                        .appendQueryParameter("api_key", BuildConfig.MOVIEDB_KEY)
+                        .appendQueryParameter("language", "en-US")
+                        .build().toString());
+                HttpURLConnection connection = (HttpURLConnection) popularMoviesUrl.openConnection();
+                try {
+                    InputStream in = connection.getInputStream();
+                    Scanner scanner = new Scanner(in);
+                    scanner.useDelimiter("\\A");
+                    String response;
+                    if (scanner.hasNext())
+                        response = scanner.next();
+                    else
+                        return null;
+
                     try {
-                        URL popularMoviesUrl = new URL(Uri.parse(URL_POPULAR).buildUpon()
-                                .appendQueryParameter("api_key", Keys.MOVIEDB_KEY)
-                                .appendQueryParameter("language", "en-US")
-                                .build().toString());
-                        HttpURLConnection connection = (HttpURLConnection) popularMoviesUrl.openConnection();
-                        try {
-                            InputStream in = connection.getInputStream();
-                            Scanner scanner = new Scanner(in);
-                            scanner.useDelimiter("\\A");
-                            String response;
-                            if (scanner.hasNext())
-                                response = scanner.next();
-                            else
-                                return null;
+                        JSONObject JSONResponse = new JSONObject(response);
+                        JSONArray moviesArray = JSONResponse.getJSONArray("results");
+                        List<Movie> tempMovies = new ArrayList<>();
 
-                            try {
-                                JSONObject JSONresponse = new JSONObject(response);
-                                JSONArray moviesArray = JSONresponse.getJSONArray("results");
+                        for (int i = 0; i < moviesArray.length(); i++) {
+                            JSONObject JSONMovie = moviesArray.getJSONObject(i);
 
+                            String title = JSONMovie.optString("title");
+                            String releaseDate = JSONMovie.optString("release_date");
+                            String poster = URL_POSTERS_BASE + JSONMovie.optString("poster_path");
+                            float voteAverage = Float.valueOf(JSONMovie.optString("vote_average"));
+                            String overview = JSONMovie.optString("overview");
 
-                                for (int i = 0; i < moviesArray.length(); i++) {
-                                    JSONObject JSONMovie = moviesArray.getJSONObject(i);
-
-                                    String title = JSONMovie.optString("title");
-                                    String releaseDate = JSONMovie.optString("release_date");
-                                    String poster = URL_POSTERS_BASE + JSONMovie.optString("poster_path");
-                                    float voteAverage = Float.valueOf(JSONMovie.optString("vote_average"));
-                                    String overview = JSONMovie.optString("overview");
-
-                                    posters.add(new Movie(title, releaseDate, poster, voteAverage, overview));
-                                }
-                                return posters;
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                return null;
-                            }
-                        } finally {
-                            connection.disconnect();
+                            tempMovies.add(new Movie(title, releaseDate, poster, voteAverage, overview));
                         }
-                    } catch (IOException e) {
+                        return tempMovies;
+                    } catch (JSONException e) {
                         e.printStackTrace();
                         return null;
                     }
+                } finally {
+                    connection.disconnect();
                 }
-            }.execute().get();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<Movie> tempMovies) {
+            if (!popularMovies.isEmpty()) popularMovies.clear();
+            popularMovies = tempMovies;
+            if (popularMoviesListener != null)
+                popularMoviesListener.onDownload(tempMovies);
         }
     }
 
-    @SuppressLint("StaticFieldLeak")
-    public static List<Movie> getTopRated() {
-        if (!posters.isEmpty()) posters.clear();
-        try {
-            return new AsyncTask<Void, Void, List<Movie>>() {
-                @Override
-                protected List<Movie> doInBackground(Void... params) {
+    public static void getTopRated(OnTopRatedMoviesDownloadedListener onTopRatedMoviesDownloadedListener) {
+        topRatedMoviesListener = onTopRatedMoviesDownloadedListener;
+        new getTopRatedAsyncTask().execute();
+    }
+
+    public interface OnTopRatedMoviesDownloadedListener {
+        void onDownload(List<Movie> downloadedTopRatedMovies);
+    }
+
+    private static class getTopRatedAsyncTask extends AsyncTask<OnTopRatedMoviesDownloadedListener, Void, List<Movie>> {
+        @Override
+        protected List<Movie> doInBackground(OnTopRatedMoviesDownloadedListener... listeners) {
+            try {
+                URL topRatedMoviesUrl = new URL(Uri.parse(URL_TOP_RATED_BASE).buildUpon()
+                        .appendQueryParameter("api_key", BuildConfig.MOVIEDB_KEY)
+                        .appendQueryParameter("language", "en-US")
+                        .build().toString());
+                HttpURLConnection connection = (HttpURLConnection) topRatedMoviesUrl.openConnection();
+                try {
+                    InputStream in = connection.getInputStream();
+                    Scanner scanner = new Scanner(in);
+                    scanner.useDelimiter("\\A");
+                    String response;
+                    if (scanner.hasNext())
+                        response = scanner.next();
+                    else
+                        return null;
+
                     try {
-                        URL popularMoviesUrl = new URL(Uri.parse(URL_TOP_RATED).buildUpon()
-                                .appendQueryParameter("api_key", Keys.MOVIEDB_KEY)
-                                .appendQueryParameter("language", "en-US")
-                                .build().toString());
-                        HttpURLConnection connection = (HttpURLConnection) popularMoviesUrl.openConnection();
-                        try {
-                            InputStream in = connection.getInputStream();
-                            Scanner scanner = new Scanner(in);
-                            scanner.useDelimiter("\\A");
-                            String response;
-                            if (scanner.hasNext())
-                                response = scanner.next();
-                            else
-                                return null;
+                        JSONObject JSONResponse = new JSONObject(response);
+                        JSONArray moviesArray = JSONResponse.getJSONArray("results");
+                        List<Movie> tempMovies = new ArrayList<>();
 
-                            try {
-                                JSONObject JSONresponse = new JSONObject(response);
-                                JSONArray moviesArray = JSONresponse.getJSONArray("results");
+                        for (int i = 0; i < moviesArray.length(); i++) {
+                            JSONObject JSONMovie = moviesArray.getJSONObject(i);
 
+                            String title = JSONMovie.optString("title");
+                            String releaseDate = JSONMovie.optString("release_date");
+                            String poster = URL_POSTERS_BASE + JSONMovie.optString("poster_path");
+                            float voteAverage = Float.valueOf(JSONMovie.optString("vote_average"));
+                            String overview = JSONMovie.optString("overview");
 
-                                for (int i = 0; i < moviesArray.length(); i++) {
-                                    JSONObject JSONMovie = moviesArray.getJSONObject(i);
-
-                                    String title = JSONMovie.optString("title");
-                                    String releaseDate = JSONMovie.optString("release_date");
-                                    String poster = URL_POSTERS_BASE + JSONMovie.optString("poster_path");
-                                    float voteAverage = Float.valueOf(JSONMovie.optString("vote_average"));
-                                    String overview = JSONMovie.optString("overview");
-
-                                    posters.add(new Movie(title, releaseDate, poster, voteAverage, overview));
-                                }
-                                return posters;
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                return null;
-                            }
-
-                        } finally {
-                            connection.disconnect();
+                            tempMovies.add(new Movie(title, releaseDate, poster, voteAverage, overview));
                         }
-                    } catch (IOException e) {
+                        return tempMovies;
+                    } catch (JSONException e) {
                         e.printStackTrace();
                         return null;
                     }
+                } finally {
+                    connection.disconnect();
                 }
-            }.execute().get();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<Movie> tempMovies) {
+            if (!topRatedMovies.isEmpty()) topRatedMovies.clear();
+            topRatedMovies = tempMovies;
+            if (topRatedMoviesListener != null)
+                topRatedMoviesListener.onDownload(tempMovies);
         }
     }
 }
