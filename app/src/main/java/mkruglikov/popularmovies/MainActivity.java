@@ -4,16 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
-import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
@@ -29,7 +28,11 @@ import mkruglikov.popularmovies.utilites.MoviesUtils;
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnMovieClickListener {
 
     private static final int SPAN_COUNT = 2;
-    private boolean isSortedByPopular = true;
+    private final int POPULAR = 555;
+    private final int FAVORITE = 666;
+    private final int TOP_RATED = 777;
+
+    private int sortedBy = POPULAR; //Default sorting
 
     private MoviesAdapter moviesAdapter;
     private boolean isNetworkAvailable;
@@ -37,8 +40,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
     private ConnectivityManager cm;
     private SwipeRefreshLayout swipeRefreshMain;
     private TextView tvToolbarTitle;
-    private ConstraintLayout constraintNetworkError;
-    private static AnimatedVectorDrawableCompat sortPopularIcon, sortTopRatedIcon;
+    private BottomNavigationView bottomNavigation;
+    private ConstraintLayout constraintNetworkError, constraintFavoriteError;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +54,86 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         Toolbar toolbar = findViewById(R.id.toolbarMain);
         setSupportActionBar(toolbar);
 
+        bottomNavigation = findViewById(R.id.bottomNavigation);
+        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.action_popular:
+                        if (constraintFavoriteError.getVisibility() != View.VISIBLE)
+                            rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out));
+                        if (cm != null && cm.getActiveNetworkInfo() != null) {
+                            tvToolbarTitle.setText(getText(R.string.popular_title));
+                            sortedBy = POPULAR;
+                        }
+                        rvMain.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                rvMain.setVisibility(View.INVISIBLE);
+                                loadMovies();
+                            }
+                        }, getResources().getInteger(R.integer.animation_duration));
+                        break;
+                    case R.id.action_favorite:
+                        rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out));
+                        if (cm != null && cm.getActiveNetworkInfo() != null) {
+                            tvToolbarTitle.setText(getText(R.string.favorite_title));
+                            sortedBy = FAVORITE;
+                        }
+                        rvMain.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                rvMain.setVisibility(View.INVISIBLE);
+                                loadMovies();
+                            }
+                        }, getResources().getInteger(R.integer.animation_duration));
+                        break;
+                    case R.id.action_topRated:
+                        if (constraintFavoriteError.getVisibility() != View.VISIBLE)
+                            rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out));
+                        if (cm != null && cm.getActiveNetworkInfo() != null) {
+                            tvToolbarTitle.setText(getText(R.string.top_rated_title));
+                            sortedBy = TOP_RATED;
+                        }
+                        rvMain.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                rvMain.setVisibility(View.INVISIBLE);
+                                loadMovies();
+                            }
+                        }, getResources().getInteger(R.integer.animation_duration));
+                        break;
+                }
+                return true;
+            }
+        });
+        bottomNavigation.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
+            @Override
+            public void onNavigationItemReselected(@NonNull MenuItem item) {
+                loadMovies();
+            }
+        });
+
         constraintNetworkError = findViewById(R.id.constraintNetworkError);
+        constraintFavoriteError = findViewById(R.id.constraintFavoriteError);
         tvToolbarTitle = findViewById(R.id.tvToolbarMainTitle);
-        tvToolbarTitle.setText(isSortedByPopular ? getText(R.string.popular_title) : getText(R.string.top_rated_title));
+        switch (sortedBy) {
+            case POPULAR:
+                tvToolbarTitle.setText(getText(R.string.popular_title));
+                break;
+            case FAVORITE:
+                tvToolbarTitle.setText(getText(R.string.favorite_title));
+                break;
+            case TOP_RATED:
+                tvToolbarTitle.setText(getText(R.string.top_rated_title));
+                break;
+        }
+        tvToolbarTitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (rvMain != null) rvMain.smoothScrollToPosition(0);
+            }
+        });
         rvMain = findViewById(R.id.rvMain);
         rvMain.setHasFixedSize(true);
 
@@ -61,14 +142,20 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
             @Override
             public void onRefresh() {
                 loadMovies();
+<<<<<<< HEAD
                 invalidateOptionsMenu();
+=======
+>>>>>>> dev
             }
         });
 
         isNetworkAvailable = (cm != null && cm.getActiveNetworkInfo() != null);
         loadMovies();
+<<<<<<< HEAD
         sortPopularIcon = AnimatedVectorDrawableCompat.create(MainActivity.this, R.drawable.ic_sort_popular);
         sortTopRatedIcon = AnimatedVectorDrawableCompat.create(MainActivity.this, R.drawable.ic_sort_top_rated);
+=======
+>>>>>>> dev
     }
 
     private void loadMovies() {
@@ -86,15 +173,18 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
             } else { //Network WASN'T available before method call
                 if (rvMain.getVisibility() == View.VISIBLE)
                     rvMain.setVisibility(View.GONE);
+                if (constraintNetworkError.getVisibility() != View.VISIBLE)
+                    constraintNetworkError.setVisibility(View.VISIBLE);
             }
             isNetworkAvailable = false;
-            invalidateOptionsMenu();
             swipeRefreshMain.setRefreshing(false);
+            bottomNavigation.setActivated(false);
         } else { //There is an internet connection
-
+            bottomNavigation.setActivated(true);
             if (moviesAdapter == null) { //First load
                 rvMain.setLayoutManager(new GridLayoutManager(this, SPAN_COUNT, LinearLayoutManager.VERTICAL, false));
 
+<<<<<<< HEAD
                 if (isSortedByPopular) {
                     MoviesUtils.getPopular(new MoviesUtils.OnPopularMoviesDownloadedListener() {
                         @Override
@@ -149,6 +239,147 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                             swipeRefreshMain.setRefreshing(false);
                         }
                     });
+=======
+                switch (sortedBy) {
+                    case POPULAR:
+                        MoviesUtils.getPopular(new MoviesUtils.OnPopularMoviesDownloadedListener() {
+                            @Override
+                            public void onDownload(List<Movie> popularMovies) {
+                                moviesAdapter = new MoviesAdapter(MainActivity.this, popularMovies, MainActivity.this);
+                                rvMain.setAdapter(moviesAdapter);
+                                if (constraintFavoriteError.getVisibility() == View.VISIBLE)
+                                    constraintFavoriteError.setVisibility(View.GONE);
+                                if (rvMain.getVisibility() != View.VISIBLE) {
+                                    rvMain.setVisibility(View.VISIBLE);
+                                    rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
+                                }
+                                swipeRefreshMain.setRefreshing(false);
+                            }
+                        });
+                        break;
+                    case FAVORITE:
+                        MoviesUtils.getFavorite(this, new MoviesUtils.OnFavoriteMoviesDownloadedListener() {
+                            @Override
+                            public void onDownload(List<Movie> favoriteMovies) {
+                                if (favoriteMovies != null) {
+                                    moviesAdapter = new MoviesAdapter(MainActivity.this, favoriteMovies, MainActivity.this);
+                                    rvMain.setAdapter(moviesAdapter);
+                                    if (constraintFavoriteError.getVisibility() == View.VISIBLE)
+                                        constraintFavoriteError.setVisibility(View.GONE);
+                                    if (rvMain.getVisibility() != View.VISIBLE) {
+                                        rvMain.setVisibility(View.VISIBLE);
+                                        rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
+                                    }
+                                    swipeRefreshMain.setRefreshing(false);
+                                } else {
+                                    rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out));
+                                    rvMain.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            rvMain.setVisibility(View.GONE);
+                                            constraintFavoriteError.setVisibility(View.VISIBLE);
+                                            constraintFavoriteError.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
+                                        }
+                                    }, getResources().getInteger(R.integer.animation_duration));
+                                }
+                            }
+                        });
+                        break;
+                    case TOP_RATED:
+                        MoviesUtils.getTopRated(new MoviesUtils.OnTopRatedMoviesDownloadedListener() {
+                            @Override
+                            public void onDownload(List<Movie> topRatedMovies) {
+                                moviesAdapter = new MoviesAdapter(MainActivity.this, topRatedMovies, MainActivity.this);
+                                rvMain.setAdapter(moviesAdapter);
+                                if (constraintFavoriteError.getVisibility() == View.VISIBLE)
+                                    constraintFavoriteError.setVisibility(View.GONE);
+                                if (rvMain.getVisibility() != View.VISIBLE) {
+                                    rvMain.setVisibility(View.VISIBLE);
+                                    rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
+                                }
+                                swipeRefreshMain.setRefreshing(false);
+                            }
+                        });
+                        break;
+                }
+            } else { //Update current posters
+                switch (sortedBy) {
+                    case POPULAR:
+                        MoviesUtils.getPopular(new MoviesUtils.OnPopularMoviesDownloadedListener() {
+                            @Override
+                            public void onDownload(List<Movie> popularMovies) {
+                                moviesAdapter.setMovies(popularMovies);
+                                if (constraintFavoriteError.getVisibility() == View.VISIBLE)
+                                    constraintFavoriteError.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out));
+                                constraintFavoriteError.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (constraintFavoriteError.getVisibility() == View.VISIBLE)
+                                            constraintFavoriteError.setVisibility(View.GONE);
+                                        if (rvMain.getVisibility() != View.VISIBLE) {
+                                            rvMain.setVisibility(View.VISIBLE);
+                                            rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
+                                        }
+                                        swipeRefreshMain.setRefreshing(false);
+                                    }
+                                }, getResources().getInteger(R.integer.animation_duration));
+                            }
+                        });
+                        break;
+                    case FAVORITE:
+                        MoviesUtils.getFavorite(this, new MoviesUtils.OnFavoriteMoviesDownloadedListener() {
+                            @Override
+                            public void onDownload(List<Movie> favoriteMovies) {
+                                if (favoriteMovies != null) {
+                                    moviesAdapter.setMovies(favoriteMovies);
+                                    if (constraintFavoriteError.getVisibility() == View.VISIBLE)
+                                        constraintFavoriteError.setVisibility(View.GONE);
+                                    if (rvMain.getVisibility() != View.VISIBLE) {
+                                        rvMain.setVisibility(View.VISIBLE);
+                                        rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
+                                    }
+                                    swipeRefreshMain.setRefreshing(false);
+                                } else {
+                                    if (rvMain.getVisibility() == View.VISIBLE)
+                                        rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out));
+                                    rvMain.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (rvMain.getVisibility() == View.VISIBLE)
+                                                rvMain.setVisibility(View.GONE);
+                                            if (rvMain.getVisibility() != View.VISIBLE) {
+                                                constraintFavoriteError.setVisibility(View.VISIBLE);
+                                                constraintFavoriteError.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
+                                            }
+                                        }
+                                    }, getResources().getInteger(R.integer.animation_duration));
+                                }
+                            }
+                        });
+                        break;
+                    case TOP_RATED:
+                        MoviesUtils.getTopRated(new MoviesUtils.OnTopRatedMoviesDownloadedListener() {
+                            @Override
+                            public void onDownload(List<Movie> topRatedMovies) {
+                                moviesAdapter.setMovies(topRatedMovies);
+                                if (constraintFavoriteError.getVisibility() == View.VISIBLE)
+                                    constraintFavoriteError.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out));
+                                rvMain.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (constraintFavoriteError.getVisibility() == View.VISIBLE)
+                                            constraintFavoriteError.setVisibility(View.GONE);
+                                        if (rvMain.getVisibility() != View.VISIBLE) {
+                                            rvMain.setVisibility(View.VISIBLE);
+                                            rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
+                                        }
+                                        swipeRefreshMain.setRefreshing(false);
+                                    }
+                                }, getResources().getInteger(R.integer.animation_duration));
+                            }
+                        });
+                        break;
+>>>>>>> dev
                 }
             }
 
@@ -168,25 +399,14 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
     }
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem miSort = menu.findItem(R.id.sort);
-        miSort.setEnabled(isNetworkAvailable);
-        miSort.getIcon().setAlpha(isNetworkAvailable ? 255 : 64);
-        return true;
+    public void onMovieClick(Movie movie) {
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra(MoviesAdapter.INTENT_EXTRA_KEY, Parcels.wrap(movie));
+        startActivity(intent);
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
-        //Recreate drawables to reset their state
-        sortPopularIcon = AnimatedVectorDrawableCompat.create(MainActivity.this, R.drawable.ic_sort_popular);
-        sortTopRatedIcon = AnimatedVectorDrawableCompat.create(MainActivity.this, R.drawable.ic_sort_top_rated);
-        menu.findItem(R.id.sort).setIcon(isSortedByPopular ? sortPopularIcon : sortTopRatedIcon);
-        return true;
-    }
-
-    @Override
+<<<<<<< HEAD
     public boolean onOptionsItemSelected(final MenuItem item) {
         if (item.getItemId() == R.id.sort) {
 
@@ -207,6 +427,12 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
             return true;
         }
         return super.onOptionsItemSelected(item);
+=======
+    protected void onResume() {
+        super.onResume();
+        if (sortedBy==FAVORITE)
+            loadMovies();
+>>>>>>> dev
     }
 
 

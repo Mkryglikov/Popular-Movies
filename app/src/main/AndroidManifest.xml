@@ -22,7 +22,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:theme="@style/DetailActivityTheme"
             android:name=".DetailActivity"
             android:parentActivityName=".MainActivity">
             <meta-data
