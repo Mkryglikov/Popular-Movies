@@ -1,15 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_popular"
-        android:icon="@drawable/ic_popular"
-        android:title="@string/popular_label" />
-    <item
-        android:id="@+id/action_favorite"
-        android:icon="@drawable/ic_favorite"
-        android:title="@string/favorite_label" />
-    <item
-        android:id="@+id/action_topRated"
-        android:icon="@drawable/ic_top_rated"
-        android:title="@string/topRated_label" />
+        android:id="@+id/sort"
+        android:title="@string/sort_action_label"
+        app:showAsAction="always"/>
 </menu>

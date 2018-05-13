@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,15 +45,9 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull final MoviesAdapter.ViewHolder holder, int position) {
-<<<<<<< HEAD
         Picasso picasso = Picasso.with(context);
         picasso.setLoggingEnabled(true);
         picasso.load(movies.get(position).getPoster()).into(holder.ivPosterItem);
-=======
-        Glide.with(context)
-                .load(movies.get(position).getPoster())
-                .into(holder.ivPosterItem);
->>>>>>> dev
 
         holder.ivPosterItem.setOnClickListener(new View.OnClickListener() {
             @Override

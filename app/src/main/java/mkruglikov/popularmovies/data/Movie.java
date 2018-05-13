@@ -4,20 +4,12 @@ import org.parceler.Parcel;
 
 @Parcel
 public class Movie {
-<<<<<<< HEAD
-=======
-    int id;
->>>>>>> dev
     String title;
     String releaseDate;
     String poster;
     String overview;
     float voteAverage;
 
-
-    public int getId() {
-        return id;
-    }
 
     public String getTitle() {
         return title;
@@ -39,8 +31,7 @@ public class Movie {
         return overview;
     }
 
-    public Movie(int id, String title, String releaseDate, String poster, float voteAverage, String overview) {
-        this.id = id;
+    public Movie(String title, String releaseDate, String poster, float voteAverage, String overview) {
         this.title = title;
         this.releaseDate = releaseDate;
         this.poster = poster;
