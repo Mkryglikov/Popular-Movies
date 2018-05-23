@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomNavigationView;
@@ -28,6 +29,8 @@ import mkruglikov.popularmovies.utilites.MoviesUtils;
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnMovieClickListener {
 
     private static final int SPAN_COUNT = 2;
+    private static final String KEY_SORTING = "sorted_by";
+    private static final String KEY_RV_STATE = "main_recycler_view_state";
     private final int POPULAR = 555;
     private final int FAVORITE = 666;
     private final int TOP_RATED = 777;
@@ -35,6 +38,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
     private int sortedBy = POPULAR; //Default sorting
 
     private MoviesAdapter moviesAdapter;
+    private GridLayoutManager gridLayoutManager;
+    private Parcelable rvState;
     private boolean isNetworkAvailable;
     private RecyclerView rvMain;
     private ConnectivityManager cm;
@@ -117,23 +122,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         constraintNetworkError = findViewById(R.id.constraintNetworkError);
         constraintFavoriteError = findViewById(R.id.constraintFavoriteError);
         tvToolbarTitle = findViewById(R.id.tvToolbarMainTitle);
-        switch (sortedBy) {
-            case POPULAR:
-                tvToolbarTitle.setText(getText(R.string.popular_title));
-                break;
-            case FAVORITE:
-                tvToolbarTitle.setText(getText(R.string.favorite_title));
-                break;
-            case TOP_RATED:
-                tvToolbarTitle.setText(getText(R.string.top_rated_title));
-                break;
-        }
         tvToolbarTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (rvMain != null) rvMain.smoothScrollToPosition(0);
             }
         });
+
         rvMain = findViewById(R.id.rvMain);
         rvMain.setHasFixedSize(true);
 
@@ -146,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         });
 
         isNetworkAvailable = (cm != null && cm.getActiveNetworkInfo() != null);
-        loadMovies();
     }
 
     private void loadMovies() {
@@ -168,12 +162,12 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                     constraintNetworkError.setVisibility(View.VISIBLE);
             }
             isNetworkAvailable = false;
-            swipeRefreshMain.setRefreshing(false);
             bottomNavigation.setActivated(false);
         } else { //There is an internet connection
             bottomNavigation.setActivated(true);
             if (moviesAdapter == null) { //First load
-                rvMain.setLayoutManager(new GridLayoutManager(this, SPAN_COUNT, LinearLayoutManager.VERTICAL, false));
+                gridLayoutManager = new GridLayoutManager(this, SPAN_COUNT, LinearLayoutManager.VERTICAL, false);
+                rvMain.setLayoutManager(gridLayoutManager);
 
                 switch (sortedBy) {
                     case POPULAR:
@@ -182,13 +176,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                             public void onDownload(List<Movie> popularMovies) {
                                 moviesAdapter = new MoviesAdapter(MainActivity.this, popularMovies, MainActivity.this);
                                 rvMain.setAdapter(moviesAdapter);
+                                gridLayoutManager.onRestoreInstanceState(rvState);
                                 if (constraintFavoriteError.getVisibility() == View.VISIBLE)
                                     constraintFavoriteError.setVisibility(View.GONE);
                                 if (rvMain.getVisibility() != View.VISIBLE) {
                                     rvMain.setVisibility(View.VISIBLE);
                                     rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
                                 }
-                                swipeRefreshMain.setRefreshing(false);
                             }
                         });
                         break;
@@ -199,13 +193,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                                 if (favoriteMovies != null) {
                                     moviesAdapter = new MoviesAdapter(MainActivity.this, favoriteMovies, MainActivity.this);
                                     rvMain.setAdapter(moviesAdapter);
+                                    gridLayoutManager.onRestoreInstanceState(rvState);
                                     if (constraintFavoriteError.getVisibility() == View.VISIBLE)
                                         constraintFavoriteError.setVisibility(View.GONE);
                                     if (rvMain.getVisibility() != View.VISIBLE) {
                                         rvMain.setVisibility(View.VISIBLE);
                                         rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
                                     }
-                                    swipeRefreshMain.setRefreshing(false);
                                 } else {
                                     rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out));
                                     rvMain.postDelayed(new Runnable() {
@@ -226,18 +220,19 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                             public void onDownload(List<Movie> topRatedMovies) {
                                 moviesAdapter = new MoviesAdapter(MainActivity.this, topRatedMovies, MainActivity.this);
                                 rvMain.setAdapter(moviesAdapter);
+                                gridLayoutManager.onRestoreInstanceState(rvState);
                                 if (constraintFavoriteError.getVisibility() == View.VISIBLE)
                                     constraintFavoriteError.setVisibility(View.GONE);
                                 if (rvMain.getVisibility() != View.VISIBLE) {
                                     rvMain.setVisibility(View.VISIBLE);
                                     rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
                                 }
-                                swipeRefreshMain.setRefreshing(false);
                             }
                         });
                         break;
                 }
             } else { //Update current posters
+                rvMain.scrollToPosition(0);
                 switch (sortedBy) {
                     case POPULAR:
                         MoviesUtils.getPopular(new MoviesUtils.OnPopularMoviesDownloadedListener() {
@@ -255,7 +250,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                                             rvMain.setVisibility(View.VISIBLE);
                                             rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
                                         }
-                                        swipeRefreshMain.setRefreshing(false);
                                     }
                                 }, getResources().getInteger(R.integer.animation_duration));
                             }
@@ -273,7 +267,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                                         rvMain.setVisibility(View.VISIBLE);
                                         rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
                                     }
-                                    swipeRefreshMain.setRefreshing(false);
                                 } else {
                                     if (rvMain.getVisibility() == View.VISIBLE)
                                         rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out));
@@ -308,7 +301,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                                             rvMain.setVisibility(View.VISIBLE);
                                             rvMain.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in));
                                         }
-                                        swipeRefreshMain.setRefreshing(false);
                                     }
                                 }, getResources().getInteger(R.integer.animation_duration));
                             }
@@ -330,6 +322,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
             }
             isNetworkAvailable = true;
         }
+        swipeRefreshMain.setRefreshing(false);
     }
 
     @Override
@@ -342,7 +335,32 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
     @Override
     protected void onResume() {
         super.onResume();
-        if (sortedBy==FAVORITE)
-            loadMovies();
+        loadMovies();
+        switch (sortedBy) {
+            case POPULAR:
+                tvToolbarTitle.setText(getText(R.string.popular_title));
+                break;
+            case FAVORITE:
+                tvToolbarTitle.setText(getText(R.string.favorite_title));
+                break;
+            case TOP_RATED:
+                tvToolbarTitle.setText(getText(R.string.top_rated_title));
+                break;
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(KEY_SORTING, sortedBy);
+        if (gridLayoutManager != null)
+            outState.putParcelable(KEY_RV_STATE, gridLayoutManager.onSaveInstanceState());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        sortedBy = savedInstanceState.getInt(KEY_SORTING);
+        rvState = savedInstanceState.getParcelable(KEY_RV_STATE);
     }
 }
