@@ -1,14 +1,15 @@
 package mkruglikov.popularmovies;
 
 import android.content.ActivityNotFoundException;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -28,18 +29,20 @@ import java.util.List;
 
 import mkruglikov.popularmovies.data.Movie;
 import mkruglikov.popularmovies.data.Review;
-import mkruglikov.popularmovies.utilites.DBHelper;
 import mkruglikov.popularmovies.utilites.MoviesUtils;
 
 public class DetailActivity extends AppCompatActivity {
 
-    boolean isFavorite;
+    private static final String TAG = "FUCK";
+    private boolean isFavorite;
     private static AnimatedVectorDrawableCompat icFavoriteEmpty, icFavoriteFull;
+    private int scrollYPosition;
     private RecyclerView rvReviews;
-    private DBHelper dbHelper;
+    private NestedScrollView nestedScrollViewDetail;
     private Movie movie;
     private ContentValues cv;
-    private SQLiteDatabase db;
+
+    private static final String KEY_SCROLL_Y_POSITION = "detail_nested_scroll_view_y_position";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +50,8 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
 
         movie = Parcels.unwrap(getIntent().getParcelableExtra(MoviesAdapter.INTENT_EXTRA_KEY));
-
         setTitle("");
+
         TextView tvToolbarDetailTitle = findViewById(R.id.tvToolbarDetailTitle);
         tvToolbarDetailTitle.setText(movie.getTitle());
         final Toolbar toolbar = findViewById(R.id.toolbarDetail);
@@ -65,7 +68,6 @@ public class DetailActivity extends AppCompatActivity {
         ivPoster.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 MoviesUtils.getTrailerkey(movie.getId(), new MoviesUtils.OnTrailerKeyDownloadedListener() {
                     @Override
                     public void onDownload(String trailerKey) {
@@ -82,33 +84,46 @@ public class DetailActivity extends AppCompatActivity {
         TextView tvDescription = findViewById(R.id.tvDescription);
         TextView tvReleaseDate = findViewById(R.id.tvReleaseDate);
         TextView tvVoteAverage = findViewById(R.id.tvVoteAverage);
-        rvReviews = findViewById(R.id.rvReviews);
-
         tvDescription.setText(movie.getOverview());
         tvReleaseDate.setText(movie.getReleaseDate());
         tvVoteAverage.setText(String.valueOf(movie.getVoteAverage()));
-        rvReviews.setHasFixedSize(true);
+
+        rvReviews = findViewById(R.id.rvReviews);
         rvReviews.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         rvReviews.setNestedScrollingEnabled(false);
 
+        nestedScrollViewDetail = findViewById(R.id.nestedScrollViewDetail);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         MoviesUtils.getReviews(movie.getId(), new MoviesUtils.OnReviewsDownloadedListener() {
             @Override
-            public void onDownload(List<Review> downloadedReviews) {
-                rvReviews.setAdapter(new ReviewsAdapter(DetailActivity.this, downloadedReviews));
+            public void onDownload(List<Review> reviews) {
+                if (!reviews.isEmpty()) {
+                    rvReviews.setAdapter(new ReviewsAdapter(DetailActivity.this, reviews));
+                    rvReviews.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (nestedScrollViewDetail != null) {
+                                nestedScrollViewDetail.scrollTo(0, scrollYPosition);
+                            }
+                        }
+                    }, 20); //todo How do I know if RecyclerView is ready and shown?
+                } else
+                    findViewById(R.id.tvReviewsLabel).setVisibility(View.GONE);
+
+
             }
         });
-        dbHelper = new DBHelper(this);
-        db = dbHelper.getWritableDatabase();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Cursor cursor = getContentResolver().query(ContentUris.withAppendedId(Uri.parse("content://mkruglikov.popularmovies/movies"), movie.getId()), new String[]{FavoriteMoviesProvider.KEY_ID}, FavoriteMoviesProvider.KEY_ID + " = " + movie.getId(), null, null);
 
-        Cursor cursor = db.query(DBHelper.TABLE_NAME, new String[]{DBHelper.KEY_ID}, DBHelper.KEY_ID + " = " + movie.getId(), null, null, null, null);
-        if (cursor.moveToFirst())
-            isFavorite = true;
-        else
-            isFavorite = false;
+        isFavorite = cursor.moveToFirst();
         cursor.close();
 
         MenuInflater inflater = getMenuInflater();
@@ -123,33 +138,43 @@ public class DetailActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(final MenuItem item) {
         if (item.getItemId() == R.id.action_favorite) {
             cv = new ContentValues();
-            if (!isFavorite)
-                addMovieToFavorite();
-            else
+
+            if (isFavorite)
                 deleteMovieFromFavorite();
+            else
+                addMovieToFavorite();
 
             item.setIcon(isFavorite ? icFavoriteFull : icFavoriteEmpty);
             (isFavorite ? icFavoriteFull : icFavoriteEmpty).start();
             isFavorite = !isFavorite;
-        } else if (item.getItemId() == R.id.homeAsUp) {
-            onBackPressed();
         }
         return super.onOptionsItemSelected(item);
     }
 
     void addMovieToFavorite() {
-        cv.put(DBHelper.KEY_ID, movie.getId());
-        cv.put(DBHelper.KEY_TITLE, movie.getTitle());
-        cv.put(DBHelper.KEY_RELEASE_DATE, movie.getReleaseDate());
-        cv.put(DBHelper.KEY_POSTER, movie.getPoster());
-        cv.put(DBHelper.KEY_VOTE_AVERAGE, movie.getVoteAverage());
-        cv.put(DBHelper.KEY_OVERVIEW, movie.getOverview());
+        cv.put(FavoriteMoviesProvider.KEY_ID, movie.getId());
+        cv.put(FavoriteMoviesProvider.KEY_TITLE, movie.getTitle());
+        cv.put(FavoriteMoviesProvider.KEY_RELEASE_DATE, movie.getReleaseDate());
+        cv.put(FavoriteMoviesProvider.KEY_POSTER, movie.getPoster());
+        cv.put(FavoriteMoviesProvider.KEY_VOTE_AVERAGE, movie.getVoteAverage());
+        cv.put(FavoriteMoviesProvider.KEY_OVERVIEW, movie.getOverview());
 
-        db.insert(DBHelper.TABLE_NAME, null, cv);
+        getContentResolver().insert(FavoriteMoviesProvider.CONTENT_URI, cv);
     }
 
     void deleteMovieFromFavorite() {
-        db.delete(DBHelper.TABLE_NAME, DBHelper.KEY_ID + "=" + movie.getId(), null);
+        getContentResolver().delete(Uri.parse("content://" + FavoriteMoviesProvider.AUTHORITY + "/" + FavoriteMoviesProvider.PATH + "/" + movie.getId()), null, null);
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(KEY_SCROLL_Y_POSITION, nestedScrollViewDetail.getScrollY());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        scrollYPosition = savedInstanceState.getInt(KEY_SCROLL_Y_POSITION);
+    }
 }

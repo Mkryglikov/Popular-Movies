@@ -1,12 +1,9 @@
 package mkruglikov.popularmovies.utilites;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,12 +18,12 @@ import java.util.List;
 import java.util.Scanner;
 
 import mkruglikov.popularmovies.BuildConfig;
+import mkruglikov.popularmovies.FavoriteMoviesProvider;
 import mkruglikov.popularmovies.data.Movie;
 import mkruglikov.popularmovies.data.Review;
 
-public class MoviesUtils {
+public final class MoviesUtils {
     private static OnPopularMoviesDownloadedListener popularMoviesListener;
-    private static OnFavoriteMoviesDownloadedListener favoriteMoviesListener;
     private static OnTopRatedMoviesDownloadedListener topRatedMoviesListener;
     private static OnTrailerKeyDownloadedListener trailerKeyListener;
     private static OnReviewsDownloadedListener reviewsListener;
@@ -40,10 +37,6 @@ public class MoviesUtils {
     private static final String URL_POSTERS_BASE = "https://image.tmdb.org/t/p/w500";
     private static final String URL_TRAILERS_BASE = "https://api.themoviedb.org/3/movie/";
     private static final String URL_REVIEWS_BASE = "https://api.themoviedb.org/3/movie/";
-
-    private static DBHelper dbHelper;
-    private static ContentValues cv;
-    private static SQLiteDatabase db;
 
     public static void getPopular(OnPopularMoviesDownloadedListener onPopularMoviesDownloadedListener) {
         popularMoviesListener = onPopularMoviesDownloadedListener;
@@ -116,34 +109,28 @@ public class MoviesUtils {
 
     public static void getFavorite(Context context, OnFavoriteMoviesDownloadedListener onFavoriteMoviesDownloadedListener) {
 
-        favoriteMoviesListener = onFavoriteMoviesDownloadedListener;
-        dbHelper = new DBHelper(context);
-        cv = new ContentValues();
-        db = dbHelper.getWritableDatabase();
+        Cursor c = context.getContentResolver().query(FavoriteMoviesProvider.CONTENT_URI, null, null, null, null);
 
-        Cursor c = db.query(DBHelper.TABLE_NAME, null, null, null, null, null, null);
         if (c.moveToFirst()) {
             List<Movie> tempMovies = new ArrayList<>();
 
             do {
-                tempMovies.add(new Movie(c.getInt(c.getColumnIndex(DBHelper.KEY_ID)),
-                        c.getString(c.getColumnIndex(DBHelper.KEY_TITLE)),
-                        c.getString(c.getColumnIndex(DBHelper.KEY_RELEASE_DATE)),
-                        c.getString(c.getColumnIndex(DBHelper.KEY_POSTER)),
-                        c.getFloat(c.getColumnIndex(DBHelper.KEY_VOTE_AVERAGE)),
-                        c.getString(c.getColumnIndex(DBHelper.KEY_OVERVIEW))
+                tempMovies.add(new Movie(c.getInt(c.getColumnIndex(FavoriteMoviesProvider.KEY_ID)),
+                        c.getString(c.getColumnIndex(FavoriteMoviesProvider.KEY_TITLE)),
+                        c.getString(c.getColumnIndex(FavoriteMoviesProvider.KEY_RELEASE_DATE)),
+                        c.getString(c.getColumnIndex(FavoriteMoviesProvider.KEY_POSTER)),
+                        c.getFloat(c.getColumnIndex(FavoriteMoviesProvider.KEY_VOTE_AVERAGE)),
+                        c.getString(c.getColumnIndex(FavoriteMoviesProvider.KEY_OVERVIEW))
                 ));
             } while (c.moveToNext());
 
             if (!favoriteMovies.isEmpty()) favoriteMovies.clear();
             favoriteMovies = tempMovies;
-            if (favoriteMoviesListener != null)
-                favoriteMoviesListener.onDownload(tempMovies);
-        } else {
-            Log.i("FUCK", "НЕТ ФИЛЬМОВ!");
-            if (favoriteMoviesListener != null)
-                favoriteMoviesListener.onDownload(null);
-        }
+            if (onFavoriteMoviesDownloadedListener != null)
+                onFavoriteMoviesDownloadedListener.onDownload(tempMovies);
+        } else if (onFavoriteMoviesDownloadedListener != null)
+            onFavoriteMoviesDownloadedListener.onDownload(null);
+
         c.close();
     }
 
