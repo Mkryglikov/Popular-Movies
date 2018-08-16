@@ -2,7 +2,7 @@
 
 **Part of Android Developer Scholarship by Google and Udacity.**
 
-App allows users to discover the most popular movies playing.
+App allows to discover the most popular or top rated movies, read their descriptions, reviews and watch trailers.
 
 ## Getting started
 This project uses the Gradle build system. To build it, use the "gradlew build" command or use "Import Project" in Android Studio.
