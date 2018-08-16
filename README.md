@@ -15,7 +15,7 @@ This project uses the Gradle build system. To build it, use the "gradlew build" 
 - com.qhutch.elevationimageview v1.5
 
 ## Screenshots
-<img src="https://github.com/Mkryglikov/MakeMaterial/blob/master/screenshots/01.%20Main.jpg" width="250"/> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <img src="https://github.com/Mkryglikov/MakeMaterial/blob/master/screenshots/02.%20Detail.jpg" width="250" />
+<img src="https://github.com/Mkryglikov/PopularMovies/blob/master/screenshots/1.jpg" width="250"/> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <img src="https://github.com/Mkryglikov/PopularMovies/blob/master/screenshots/2.jpg" width="250" />
 
 ## License
 MIT License
