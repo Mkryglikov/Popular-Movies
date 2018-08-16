@@ -6,7 +6,6 @@
     <string name="vote_average_label">Vote average:</string>
     <string name="network_error_title">Connect to the Internet</string>
     <string name="network_error_description">Check your internet connection\nand swipe down to refresh</string>
-    <string name="sort_action_label">Sort</string>
     <string name="favorite_action_label">Favorite</string>
     <string name="description_label">Description</string>
     <string name="reviews_label">Reviews</string>

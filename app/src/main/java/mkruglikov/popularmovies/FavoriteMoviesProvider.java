@@ -14,9 +14,9 @@ import android.text.TextUtils;
 
 public class FavoriteMoviesProvider extends android.content.ContentProvider {
 
-    public static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "favoriteMoviesDb";
-    public static final String TABLE_NAME = "movies";
+    private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_NAME = "favoriteMoviesDb";
+    private static final String TABLE_NAME = "movies";
 
     public static final String KEY_ID = "id";
     public static final String KEY_TITLE = "title";
@@ -28,9 +28,9 @@ public class FavoriteMoviesProvider extends android.content.ContentProvider {
     static final String AUTHORITY = "mkruglikov.popularmovies";
     static final String PATH = TABLE_NAME;
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + PATH);
-    static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd." + AUTHORITY + "." + PATH;
-    static final int URI_FAVORITE_MOVIES = 101;
-    static final int URI_FAVORITE_MOVIES_ID = 102;
+    private static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd." + AUTHORITY + "." + PATH;
+    private static final int URI_FAVORITE_MOVIES = 101;
+    private static final int URI_FAVORITE_MOVIES_ID = 102;
 
     private static final UriMatcher uriMatcher;
 
@@ -40,8 +40,8 @@ public class FavoriteMoviesProvider extends android.content.ContentProvider {
         uriMatcher.addURI(AUTHORITY, PATH + "/#", URI_FAVORITE_MOVIES_ID);
     }
 
-    DBHelper dbHelper;
-    SQLiteDatabase db;
+    private DBHelper dbHelper;
+    private SQLiteDatabase db;
 
     @Override
     public boolean onCreate() {

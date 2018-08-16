@@ -17,7 +17,7 @@
             android:layout_height="match_parent"
             android:layout_marginEnd="16dp"
             android:gravity="center"
-            android:hint="Popular movies"
+            android:hint="@string/app_name"
             android:textSize="20sp" />
     </android.support.v7.widget.Toolbar>
 
@@ -45,12 +45,14 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
+                    android:contentDescription="Poster"
                     android:id="@+id/ivPoster"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop" />
 
                 <ImageView
+                    android:contentDescription="Play trailer"
                     android:id="@+id/ivPlay"
                     android:layout_width="64dp"
                     android:layout_height="64dp"
@@ -79,7 +81,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="2018-02-07"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="@+id/tvReleaseDateLabel"
                 app:layout_constraintStart_toStartOf="@+id/tvReleaseDateLabel"
@@ -104,7 +105,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="6.0"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="@+id/tvVoteAverageLabel"
                 app:layout_constraintStart_toStartOf="@+id/tvVoteAverageLabel"
@@ -133,7 +133,6 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:hint="Lorem ipsum"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

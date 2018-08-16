@@ -60,6 +60,7 @@
         android:visibility="gone">
 
         <ImageView
+            android:contentDescription="No network icon"
             android:id="@+id/ivNoNetwork"
             android:layout_width="128dp"
             android:layout_height="128dp"
@@ -100,6 +101,7 @@
         android:visibility="gone">
 
         <ImageView
+            android:contentDescription="No favorites icon"
             android:id="@+id/ivNoFavorites"
             android:layout_width="128dp"
             android:layout_height="128dp"

@@ -19,7 +19,7 @@ import mkruglikov.popularmovies.data.Movie;
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder> {
     static final String INTENT_EXTRA_KEY = "intent_bundle_key";
     private List<Movie> movies = new ArrayList<>();
-    private OnMovieClickListener listener;
+    private final OnMovieClickListener listener;
     private final Context context;
 
     MoviesAdapter(Context context, List<Movie> movies, OnMovieClickListener listener) {

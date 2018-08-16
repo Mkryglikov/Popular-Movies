@@ -1,4 +1,4 @@
-package mkruglikov.popularmovies.utilites;
+package mkruglikov.popularmovies;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -22,7 +22,7 @@ import mkruglikov.popularmovies.FavoriteMoviesProvider;
 import mkruglikov.popularmovies.data.Movie;
 import mkruglikov.popularmovies.data.Review;
 
-public final class MoviesUtils {
+final class MoviesUtils {
     private static OnPopularMoviesDownloadedListener popularMoviesListener;
     private static OnTopRatedMoviesDownloadedListener topRatedMoviesListener;
     private static OnTrailerKeyDownloadedListener trailerKeyListener;

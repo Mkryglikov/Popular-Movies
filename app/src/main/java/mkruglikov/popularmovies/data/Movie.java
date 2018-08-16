@@ -45,7 +45,7 @@ public class Movie {
         this.overview = overview;
     }
 
-    // Empty constructor needed by the Parceler library
     public Movie() {
+        // For Parceler
     }
 }
