@@ -29,11 +29,9 @@ import java.util.List;
 
 import mkruglikov.popularmovies.data.Movie;
 import mkruglikov.popularmovies.data.Review;
-import mkruglikov.popularmovies.utilites.MoviesUtils;
 
 public class DetailActivity extends AppCompatActivity {
 
-    private static final String TAG = "FUCK";
     private boolean isFavorite;
     private static AnimatedVectorDrawableCompat icFavoriteEmpty, icFavoriteFull;
     private int scrollYPosition;
@@ -151,7 +149,7 @@ public class DetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    void addMovieToFavorite() {
+    private void addMovieToFavorite() {
         cv.put(FavoriteMoviesProvider.KEY_ID, movie.getId());
         cv.put(FavoriteMoviesProvider.KEY_TITLE, movie.getTitle());
         cv.put(FavoriteMoviesProvider.KEY_RELEASE_DATE, movie.getReleaseDate());
@@ -162,7 +160,7 @@ public class DetailActivity extends AppCompatActivity {
         getContentResolver().insert(FavoriteMoviesProvider.CONTENT_URI, cv);
     }
 
-    void deleteMovieFromFavorite() {
+    private void deleteMovieFromFavorite() {
         getContentResolver().delete(Uri.parse("content://" + FavoriteMoviesProvider.AUTHORITY + "/" + FavoriteMoviesProvider.PATH + "/" + movie.getId()), null, null);
     }
 

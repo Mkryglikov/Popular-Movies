@@ -1,26 +1,6 @@
-# Popular Movies
-
-**Part of Android Developer Scholarship by Google and Udacity.**
-
-App allows users to discover the most popular movies playing.
-
-## Getting started
-This project uses the Gradle build system. To build it, use the "gradlew build" command or use "Import Project" in Android Studio.
-
-## Pre-requisites
-- Android SDK v21+
-- Android Support Repository v27.1.1
-- Parceler v1.1.9
-- Glide v3.7.0
-- com.qhutch.elevationimageview v1.5
-
-## Screenshots
-<img src="https://github.com/Mkryglikov/MakeMaterial/blob/master/screenshots/01.%20Main.jpg" width="250"/> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <img src="https://github.com/Mkryglikov/MakeMaterial/blob/master/screenshots/02.%20Detail.jpg" width="250" />
-
-## License
 MIT License
 
-Copyright (c) 2018 Kruglikov Maksim
+Copyright (c) 2018 Maksim Kruglikov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

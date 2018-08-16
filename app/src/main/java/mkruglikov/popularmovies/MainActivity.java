@@ -24,7 +24,6 @@ import org.parceler.Parcels;
 import java.util.List;
 
 import mkruglikov.popularmovies.data.Movie;
-import mkruglikov.popularmovies.utilites.MoviesUtils;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnMovieClickListener {
 

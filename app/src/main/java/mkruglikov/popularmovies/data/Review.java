@@ -20,7 +20,7 @@ public class Review {
         this.content = content;
     }
 
-    // Empty constructor needed by the Parceler library
     public Review() {
+        // For Parceler
     }
 }

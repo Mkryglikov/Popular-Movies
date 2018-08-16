@@ -21,7 +21,6 @@
                 android:id="@+id/tvReviewContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Overrated and overhyped. Definitely avoid. Watch on redbox if you must."
                 android:textSize="16sp" />
 
             <TextView
@@ -31,7 +30,6 @@
                 android:layout_alignParentEnd="true"
                 android:layout_below="@+id/tvReviewContent"
                 android:layout_marginTop="16dp"
-                android:hint="Movie Queen41"
                 android:textAlignment="textEnd"
                 android:textColor="#616161"
                 android:textSize="14sp"
